@@ -1,7 +1,7 @@
 [package]
-name = "chunked_transfer"
+name = "chunked-transfer"
 version = "0.2.0"
 authors = ["Corey Farwell <coreyf@rwell.org>"]
 license = "Apache-2.0"
-repository = "https://github.com/frewsxcv/rust-chunked-transfer-coding"
+repository = "https://github.com/frewsxcv/rust-chunked-transfer"
 description = "Encoder and decoder for HTTP chunked transfer coding (RFC 2616 § 3.6.1)"

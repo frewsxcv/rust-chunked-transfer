@@ -1,9 +1,9 @@
-# rust-chunked-transfer-coding
+# rust-chunked-transfer
 
-[![Build Status](https://travis-ci.org/frewsxcv/rust-chunked-transfer-coding.svg?branch=master)](https://travis-ci.org/frewsxcv/rust-chunked-transfer-coding)
-[![chunked-transfer-encoding on Crates.io](https://meritbadge.herokuapp.com/chunked-transfer-coding)](https://crates.io/crates/chunked-transfer-coding)
+[![Build Status](https://travis-ci.org/frewsxcv/rust-chunked-transfer.svg?branch=master)](https://travis-ci.org/frewsxcv/rust-chunked-transfer)
+[![chunked-transfer on Crates.io](https://meritbadge.herokuapp.com/chunked-transfer)](https://crates.io/crates/chunked-transfer)
 
-[Documentation](https://frewsxcv.github.io/rust-chunked-transfer-coding/)
+[Documentation](https://frewsxcv.github.io/rust-chunked-transfer/)
 
 Encoder and decoder for HTTP chunked transfer coding. For more information about chunked transfer encoding:
 
