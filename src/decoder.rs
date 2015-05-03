@@ -18,21 +18,6 @@ pub struct ChunksDecoder<R> {
     buffer: Vec<u8>,
 }
 
-#[derive(Debug, Copy, Clone)]
-pub struct ChunksError;
-
-impl fmt::Display for ChunksError {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(fmt, "Error while decoding chunks")
-    }
-}
-
-impl Error for ChunksError {
-    fn description(&self) -> &str {
-        "Error while decoding chunks"
-    }
-}
-
 impl<R> ChunksDecoder<R> where R: Read {
     pub fn new(source: R) -> ChunksDecoder<R> {
         ChunksDecoder {
@@ -127,6 +112,22 @@ impl<R> Read for ChunksDecoder<R> where R: Read {
         return Ok(read);
     }
 }
+
+#[derive(Debug, Copy, Clone)]
+pub struct ChunksError;
+
+impl fmt::Display for ChunksError {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(fmt, "Error while decoding chunks")
+    }
+}
+
+impl Error for ChunksError {
+    fn description(&self) -> &str {
+        "Error while decoding chunks"
+    }
+}
+
 
 #[cfg(test)]
 mod test {
