@@ -25,12 +25,12 @@ use std::io::Write;
 /// use chunked_transfer::Encoder;
 /// use std::io::Write;
 ///
-/// let mut decoded = b"hello world";
+/// let mut decoded = "hello world";
 /// let mut encoded: Vec<u8> = vec![];
 ///
 /// {
 ///     let mut encoder = Encoder::with_chunks_size(&mut encoded, 5);
-///     encoder.write_all(decoded as &[u8]);
+///     encoder.write_all(decoded.as_bytes());
 /// }
 ///
 /// assert_eq!(encoded, b"5\r\nhello\r\n5\r\n worl\r\n1\r\nd\r\n0\r\n\r\n");
