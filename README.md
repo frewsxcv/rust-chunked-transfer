@@ -3,6 +3,8 @@
 [![Build Status](https://travis-ci.org/frewsxcv/rust-chunked-transfer-coding.svg?branch=master)](https://travis-ci.org/frewsxcv/rust-chunked-transfer-coding)
 [![chunked-transfer-encoding on Crates.io](https://meritbadge.herokuapp.com/chunked-transfer-coding)](https://crates.io/crates/chunked-transfer-coding)
 
+[Documentation](https://frewsxcv.github.io/rust-chunked-transfer-coding/)
+
 Encoder and decoder for HTTP chunked transfer coding. For more information about chunked transfer encoding:
 
 * [RFC 2616 § 3.6.1](http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1)
