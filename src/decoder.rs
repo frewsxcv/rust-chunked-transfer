@@ -44,9 +44,6 @@ pub struct Decoder<R> {
     // remaining size of the chunk being read
     // none if we are not in a chunk
     remaining_chunks_size: Option<usize>,
-
-    // data from the start of the current chunk
-    buffer: Vec<u8>,
 }
 
 impl<R> Decoder<R> where R: Read {
@@ -54,7 +51,6 @@ impl<R> Decoder<R> where R: Read {
         Decoder {
             source: source,
             remaining_chunks_size: None,
-            buffer: Vec::with_capacity(128),
         }
     }
 }
