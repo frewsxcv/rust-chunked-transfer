@@ -1,7 +1,7 @@
 # rust-chunked-transfer
 
 [![Build Status](https://travis-ci.org/frewsxcv/rust-chunked-transfer.svg?branch=master)](https://travis-ci.org/frewsxcv/rust-chunked-transfer)
-[![chunked-transfer on Crates.io](https://meritbadge.herokuapp.com/chunked-transfer)](https://crates.io/crates/chunked-transfer)
+[![chunked\_transfer on Crates.io](https://meritbadge.herokuapp.com/chunked_transfer)](https://crates.io/crates/chunked\_transfer)
 
 [Documentation](https://frewsxcv.github.io/rust-chunked-transfer/)
 
