@@ -11,4 +11,19 @@ This library can be installed via [chunked-transfer-ecoding on Crates.io](https:
 
 ## Example
 
-TODO
+### Decoding
+
+```rust
+use chunked_transfer::Decoder;
+use std::io::Read;
+
+let encoded = b"3\r\nhel\r\nb\r\nlo world!!!\r\n0\r\n\r\n";
+let mut decoder = Decoder::new(encoded as &[u8]);
+
+let mut decoded = String::new();
+decoder.read_to_string(&mut decoded);
+
+assert_eq!(decoded, "hello world!!!");
+```
+
+### Encoding

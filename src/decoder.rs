@@ -22,6 +22,21 @@ use std::fmt;
 use std::error::Error;
 
 /// Reads HTTP chunks and sends back real data.
+///
+/// # Example
+///
+/// ```
+/// use chunked_transfer::Decoder;
+/// use std::io::Read;
+///
+/// let encoded = b"3\r\nhel\r\nb\r\nlo world!!!\r\n0\r\n\r\n";
+/// let mut decoder = Decoder::new(encoded as &[u8]);
+///
+/// let mut decoded = String::new();
+/// decoder.read_to_string(&mut decoded);
+///
+/// assert_eq!(decoded, "hello world!!!");
+/// ```
 pub struct Decoder<R> {
     // where the chunks come from
     source: R,
