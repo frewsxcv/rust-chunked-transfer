@@ -141,7 +141,7 @@ impl<R> Read for Decoder<R> where R: Read {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct DecoderError;
+struct DecoderError;
 
 impl fmt::Display for DecoderError {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
