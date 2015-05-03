@@ -2,3 +2,4 @@
 name = "chunked-transfer-coding"
 version = "0.1.0"
 authors = ["Corey Farwell <coreyf@rwell.org>"]
+license = "Apache-2.0"
