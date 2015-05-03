@@ -72,8 +72,8 @@ impl<W> Drop for ChunksEncoder<W> where W: Write {
 mod test {
     use std::io;
     use std::io::Write;
+    use std::str::from_utf8;
     use super::ChunksEncoder;
-    use ascii::OwnedAsciiCast;
 
     #[test]
     fn test() {
@@ -85,7 +85,7 @@ mod test {
             io::copy(&mut source, &mut encoder).unwrap();
         }
 
-        let output = dest.into_ascii().unwrap().to_string();
+        let output = from_utf8(&dest).unwrap();
 
         assert_eq!(output, "5\r\nhello\r\n5\r\n worl\r\n1\r\nd\r\n0\r\n\r\n");
     }
