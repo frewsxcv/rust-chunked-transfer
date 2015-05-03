@@ -1,5 +1,5 @@
 [package]
-name = "chunked-transfer-coding"
+name = "chunked_transfer"
 version = "0.1.0"
 authors = ["Corey Farwell <coreyf@rwell.org>"]
 license = "Apache-2.0"
