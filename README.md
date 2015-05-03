@@ -41,3 +41,8 @@ let mut encoded: Vec<u8> = vec![];
 
 assert_eq!(encoded, b"5\r\nhello\r\n5\r\n worl\r\n1\r\nd\r\n0\r\n\r\n");
 ```
+
+## Authors
+
+* [tomaka](https://github.com/tomaka)
+* [frewsxcv](https://github.com/frewsxcv)
