@@ -31,10 +31,10 @@ pub struct Encoder<W> where W: Write {
 
 impl<W> Encoder<W> where W: Write {
     pub fn new(output: W) -> Encoder<W> {
-        Encoder::new_with_chunks_size(output, 8192)
+        Encoder::with_chunks_size(output, 8192)
     }
 
-    pub fn new_with_chunks_size(output: W, chunks: usize) -> Encoder<W> {
+    pub fn with_chunks_size(output: W, chunks: usize) -> Encoder<W> {
         Encoder {
             output: output,
             chunks_size: chunks,
@@ -97,7 +97,7 @@ mod test {
         let mut dest: Vec<u8> = vec![];
 
         {
-            let mut encoder = Encoder::new_with_chunks_size(dest.by_ref(), 5);
+            let mut encoder = Encoder::with_chunks_size(dest.by_ref(), 5);
             io::copy(&mut source, &mut encoder).unwrap();
         }
 
