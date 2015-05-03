@@ -18,6 +18,23 @@ use std::io::Result as IoResult;
 use std::io::Write;
 
 /// Splits the incoming data into HTTP chunks.
+///
+/// # Example
+///
+/// ```
+/// use chunked_transfer::Encoder;
+/// use std::io::Write;
+///
+/// let mut decoded = b"hello world";
+/// let mut encoded: Vec<u8> = vec![];
+///
+/// {
+///     let mut encoder = Encoder::with_chunks_size(&mut encoded, 5);
+///     encoder.write_all(decoded as &[u8]);
+/// }
+///
+/// assert_eq!(encoded, b"5\r\nhello\r\n5\r\n worl\r\n1\r\nd\r\n0\r\n\r\n");
+/// ```
 pub struct Encoder<W> where W: Write {
     // where to send the result
     output: W,
