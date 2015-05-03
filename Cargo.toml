@@ -1,6 +1,6 @@
 [package]
 name = "chunked-transfer"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Corey Farwell <coreyf@rwell.org>"]
 license = "Apache-2.0"
 repository = "https://github.com/frewsxcv/rust-chunked-transfer"
