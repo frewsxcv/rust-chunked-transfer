@@ -22,7 +22,7 @@ use std::fmt;
 use std::error::Error;
 
 /// Reads HTTP chunks and sends back real data.
-pub struct ChunksDecoder<R> {
+pub struct Decoder<R> {
     // where the chunks come from
     source: R,
 
@@ -34,9 +34,9 @@ pub struct ChunksDecoder<R> {
     buffer: Vec<u8>,
 }
 
-impl<R> ChunksDecoder<R> where R: Read {
-    pub fn new(source: R) -> ChunksDecoder<R> {
-        ChunksDecoder {
+impl<R> Decoder<R> where R: Read {
+    pub fn new(source: R) -> Decoder<R> {
+        Decoder {
             source: source,
             remaining_chunks_size: None,
             buffer: Vec::with_capacity(128),
@@ -44,7 +44,7 @@ impl<R> ChunksDecoder<R> where R: Read {
     }
 }
 
-impl<R> Read for ChunksDecoder<R> where R: Read {
+impl<R> Read for Decoder<R> where R: Read {
     fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
         // first possibility: we are not in a chunk
         if self.remaining_chunks_size.is_none() {
@@ -54,7 +54,7 @@ impl<R> Read for ChunksDecoder<R> where R: Read {
             loop {
                 let byte = match self.source.by_ref().bytes().next() {
                     Some(b) => try!(b),
-                    None => return Err(IoError::new(ErrorKind::InvalidInput, ChunksError)),
+                    None => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
                 };
 
                 if byte == b'\r' {
@@ -66,26 +66,26 @@ impl<R> Read for ChunksDecoder<R> where R: Read {
 
             match self.source.by_ref().bytes().next() {
                 Some(Ok(b'\n')) => (),
-                _ => return Err(IoError::new(ErrorKind::InvalidInput, ChunksError)),
+                _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
             }
 
             let chunk_size = match String::from_utf8(chunk_size) {
                 Ok(c) => c,
-                Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, ChunksError))
+                Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
             };
 
             let chunk_size = match usize::from_str_radix(&chunk_size, 16) {
                 Ok(c) => c,
-                Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, ChunksError))
+                Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
             };
 
             // if the chunk size is 0, we are at EOF
             if chunk_size == 0 {
                 if try!(self.source.by_ref().bytes().next().unwrap_or(Ok(0))) != b'\r' {
-                    return Err(IoError::new(ErrorKind::InvalidInput, ChunksError));
+                    return Err(IoError::new(ErrorKind::InvalidInput, DecoderError));
                 }
                 if try!(self.source.by_ref().bytes().next().unwrap_or(Ok(0))) != b'\n' {
-                    return Err(IoError::new(ErrorKind::InvalidInput, ChunksError));
+                    return Err(IoError::new(ErrorKind::InvalidInput, DecoderError));
                 }
                 return Ok(0);
             }
@@ -118,10 +118,10 @@ impl<R> Read for ChunksDecoder<R> where R: Read {
             self.remaining_chunks_size = None;
 
             if try!(self.source.by_ref().bytes().next().unwrap_or(Ok(0))) != b'\r' {
-                return Err(IoError::new(ErrorKind::InvalidInput, ChunksError));
+                return Err(IoError::new(ErrorKind::InvalidInput, DecoderError));
             }
             if try!(self.source.by_ref().bytes().next().unwrap_or(Ok(0))) != b'\n' {
-                return Err(IoError::new(ErrorKind::InvalidInput, ChunksError));
+                return Err(IoError::new(ErrorKind::InvalidInput, DecoderError));
             }
         }
 
@@ -130,15 +130,15 @@ impl<R> Read for ChunksDecoder<R> where R: Read {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct ChunksError;
+pub struct DecoderError;
 
-impl fmt::Display for ChunksError {
+impl fmt::Display for DecoderError {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(fmt, "Error while decoding chunks")
     }
 }
 
-impl Error for ChunksError {
+impl Error for DecoderError {
     fn description(&self) -> &str {
         "Error while decoding chunks"
     }
@@ -147,14 +147,14 @@ impl Error for ChunksError {
 
 #[cfg(test)]
 mod test {
-    use super::ChunksDecoder;
+    use super::Decoder;
     use std::io;
     use std::io::Read;
 
     #[test]
     fn test_valid_chunk_decode() {
         let source = io::Cursor::new("3\r\nhel\r\nb\r\nlo world!!!\r\n0\r\n\r\n".to_string().into_bytes());
-        let mut decoded = ChunksDecoder::new(source);
+        let mut decoded = Decoder::new(source);
 
         let mut string = String::new();
         decoded.read_to_string(&mut string).unwrap();
@@ -166,7 +166,7 @@ mod test {
     #[should_panic]
     fn invalid_input1() {
         let source = io::Cursor::new("2\r\nhel\r\nb\r\nlo world!!!\r\n0\r\n".to_string().into_bytes());
-        let mut decoded = ChunksDecoder::new(source);
+        let mut decoded = Decoder::new(source);
 
         let mut string = String::new();
         decoded.read_to_string(&mut string).unwrap();
@@ -176,7 +176,7 @@ mod test {
     #[should_panic]
     fn invalid_input2() {
         let source = io::Cursor::new("3\rhel\r\nb\r\nlo world!!!\r\n0\r\n".to_string().into_bytes());
-        let mut decoded = ChunksDecoder::new(source);
+        let mut decoded = Decoder::new(source);
 
         let mut string = String::new();
         decoded.read_to_string(&mut string).unwrap();

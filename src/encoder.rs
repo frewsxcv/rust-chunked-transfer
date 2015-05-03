@@ -18,7 +18,7 @@ use std::io::Result as IoResult;
 use std::io::Write;
 
 /// Splits the incoming data into HTTP chunks.
-pub struct ChunksEncoder<W> where W: Write {
+pub struct Encoder<W> where W: Write {
     // where to send the result
     output: W,
 
@@ -29,13 +29,13 @@ pub struct ChunksEncoder<W> where W: Write {
     buffer: Vec<u8>,
 }
 
-impl<W> ChunksEncoder<W> where W: Write {
-    pub fn new(output: W) -> ChunksEncoder<W> {
-        ChunksEncoder::new_with_chunks_size(output, 8192)
+impl<W> Encoder<W> where W: Write {
+    pub fn new(output: W) -> Encoder<W> {
+        Encoder::new_with_chunks_size(output, 8192)
     }
 
-    pub fn new_with_chunks_size(output: W, chunks: usize) -> ChunksEncoder<W> {
-        ChunksEncoder {
+    pub fn new_with_chunks_size(output: W, chunks: usize) -> Encoder<W> {
+        Encoder {
             output: output,
             chunks_size: chunks,
             buffer: Vec::with_capacity(0),
@@ -50,7 +50,7 @@ fn send<W>(output: &mut W, data: &[u8]) -> IoResult<()> where W: Write {
     Ok(())
 }
 
-impl<W> Write for ChunksEncoder<W> where W: Write {
+impl<W> Write for Encoder<W> where W: Write {
     fn write(&mut self, buf: &[u8]) -> IoResult<usize> {
         try!(self.buffer.write_all(buf));
 
@@ -77,7 +77,7 @@ impl<W> Write for ChunksEncoder<W> where W: Write {
     }
 }
 
-impl<W> Drop for ChunksEncoder<W> where W: Write {
+impl<W> Drop for Encoder<W> where W: Write {
     fn drop(&mut self) {
         self.flush().ok();
         send(&mut self.output, &[]).ok();
@@ -89,7 +89,7 @@ mod test {
     use std::io;
     use std::io::Write;
     use std::str::from_utf8;
-    use super::ChunksEncoder;
+    use super::Encoder;
 
     #[test]
     fn test() {
@@ -97,7 +97,7 @@ mod test {
         let mut dest: Vec<u8> = vec![];
 
         {
-            let mut encoder = ChunksEncoder::new_with_chunks_size(dest.by_ref(), 5);
+            let mut encoder = Encoder::new_with_chunks_size(dest.by_ref(), 5);
             io::copy(&mut source, &mut encoder).unwrap();
         }
 

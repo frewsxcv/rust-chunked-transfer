@@ -15,7 +15,7 @@
 
 
 mod decoder;
-pub use decoder::{ChunksDecoder, ChunksError};
+pub use decoder::{Decoder, DecoderError};
 
 mod encoder;
-pub use encoder::ChunksEncoder;
+pub use encoder::Encoder;
