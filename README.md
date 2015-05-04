@@ -7,7 +7,8 @@
 
 Encoder and decoder for HTTP chunked transfer coding. For more information about chunked transfer encoding:
 
-* [RFC 2616 § 3.6.1](http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1)
+* [RFC 7230 § 4.1](https://tools.ietf.org/html/rfc7230#section-4.1)
+* [RFC 2616 § 3.6.1](http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1) (deprecated)
 * [Wikipedia: Chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
 
 ## Example
