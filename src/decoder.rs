@@ -174,22 +174,20 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
     fn invalid_input1() {
         let source = io::Cursor::new("2\r\nhel\r\nb\r\nlo world!!!\r\n0\r\n".to_string().into_bytes());
         let mut decoded = Decoder::new(source);
 
         let mut string = String::new();
-        decoded.read_to_string(&mut string).unwrap();
+        decoded.read_to_string(&mut string).is_err();
     }
 
     #[test]
-    #[should_panic]
     fn invalid_input2() {
         let source = io::Cursor::new("3\rhel\r\nb\r\nlo world!!!\r\n0\r\n".to_string().into_bytes());
         let mut decoded = Decoder::new(source);
 
         let mut string = String::new();
-        decoded.read_to_string(&mut string).unwrap();
+        decoded.read_to_string(&mut string).is_err();
     }
 }
