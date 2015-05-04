@@ -70,10 +70,7 @@ impl<R> Decoder<R> where R: Read {
             chunk_size.push(byte);
         }
 
-        match self.source.by_ref().bytes().next() {
-            Some(Ok(b'\n')) => (),
-            _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
-        }
+        try!(self.read_line_feed());
 
         let chunk_size = match String::from_utf8(chunk_size) {
             Ok(c) => c,
@@ -86,6 +83,20 @@ impl<R> Decoder<R> where R: Read {
         };
 
         Ok(chunk_size)
+    }
+
+    fn read_carriage_return(&mut self) -> IoResult<()> {
+        match self.source.by_ref().bytes().next() {
+            Some(Ok(b'\r')) => Ok(()),
+            _ => Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
+        }
+    }
+
+    fn read_line_feed(&mut self) -> IoResult<()> {
+        match self.source.by_ref().bytes().next() {
+            Some(Ok(b'\n')) => Ok(()),
+            _ => Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
+        }
     }
 }
 
@@ -100,16 +111,8 @@ impl<R> Read for Decoder<R> where R: Read {
 
                 // if the chunk size is 0, we are at EOF
                 if chunk_size == 0 {
-                    match self.source.by_ref().bytes().next() {
-                        Some(Ok(b'\r')) => (),
-                        _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
-                    }
-
-                    match self.source.by_ref().bytes().next() {
-                        Some(Ok(b'\n')) => (),
-                        _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
-                    }
-
+                    try!(self.read_carriage_return());
+                    try!(self.read_line_feed());
                     return Ok(0);
                 }
 
@@ -134,16 +137,8 @@ impl<R> Read for Decoder<R> where R: Read {
         let read = try!(self.source.read(buf));
 
         self.remaining_chunks_size = if read == remaining_chunks_size {
-            match self.source.by_ref().bytes().next() {
-                Some(Ok(b'\r')) => (),
-                _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
-            }
-
-            match self.source.by_ref().bytes().next() {
-                Some(Ok(b'\n')) => (),
-                _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
-            }
-
+            try!(self.read_carriage_return());
+            try!(self.read_line_feed());
             None
         } else {
             Some(remaining_chunks_size - read)
