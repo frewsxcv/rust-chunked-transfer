@@ -127,11 +127,8 @@ impl<R> Read for Decoder<R> where R: Read {
 
         let buf = &mut buf[.. remaining_chunks_size];
         let read = try!(self.source.read(buf));
-        *self.remaining_chunks_size.as_mut().unwrap() -= read;
 
-        if read == remaining_chunks_size {
-            self.remaining_chunks_size = None;
-
+        self.remaining_chunks_size = if read == remaining_chunks_size {
             match self.source.by_ref().bytes().next() {
                 Some(Ok(b'\r')) => (),
                 _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
@@ -141,7 +138,11 @@ impl<R> Read for Decoder<R> where R: Read {
                 Some(Ok(b'\n')) => (),
                 _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
             }
-        }
+
+            None
+        } else {
+            Some(remaining_chunks_size - read)
+        };
 
         return Ok(read);
     }
