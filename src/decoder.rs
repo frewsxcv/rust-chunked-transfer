@@ -53,6 +53,40 @@ impl<R> Decoder<R> where R: Read {
             remaining_chunks_size: None,
         }
     }
+
+    fn read_chunk_size(&mut self) -> Result<usize, IoError> {
+        let mut chunk_size = Vec::new();
+
+        loop {
+            let byte = match self.source.by_ref().bytes().next() {
+                Some(b) => try!(b),
+                None => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
+            };
+
+            if byte == b'\r' {
+                break;
+            }
+
+            chunk_size.push(byte);
+        }
+
+        match self.source.by_ref().bytes().next() {
+            Some(Ok(b'\n')) => (),
+            _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
+        }
+
+        let chunk_size = match String::from_utf8(chunk_size) {
+            Ok(c) => c,
+            Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
+        };
+
+        let chunk_size = match usize::from_str_radix(&chunk_size, 16) {
+            Ok(c) => c,
+            Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
+        };
+
+        Ok(chunk_size)
+    }
 }
 
 impl<R> Read for Decoder<R> where R: Read {
@@ -62,35 +96,7 @@ impl<R> Read for Decoder<R> where R: Read {
             None => {
                 // first possibility: we are not in a chunk, so we'll attempt to determine
                 // the chunks size
-                let mut chunk_size = Vec::new();
-
-                loop {
-                    let byte = match self.source.by_ref().bytes().next() {
-                        Some(b) => try!(b),
-                        None => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
-                    };
-
-                    if byte == b'\r' {
-                        break;
-                    }
-
-                    chunk_size.push(byte);
-                }
-
-                match self.source.by_ref().bytes().next() {
-                    Some(Ok(b'\n')) => (),
-                    _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
-                }
-
-                let chunk_size = match String::from_utf8(chunk_size) {
-                    Ok(c) => c,
-                    Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
-                };
-
-                let chunk_size = match usize::from_str_radix(&chunk_size, 16) {
-                    Ok(c) => c,
-                    Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
-                };
+                let chunk_size = try!(self.read_chunk_size());
 
                 // if the chunk size is 0, we are at EOF
                 if chunk_size == 0 {
