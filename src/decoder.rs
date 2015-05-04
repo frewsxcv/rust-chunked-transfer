@@ -54,7 +54,7 @@ impl<R> Decoder<R> where R: Read {
         }
     }
 
-    fn read_chunk_size(&mut self) -> Result<usize, IoError> {
+    fn read_chunk_size(&mut self) -> IoResult<usize> {
         let mut chunk_size = Vec::new();
 
         loop {
