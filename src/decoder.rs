@@ -181,6 +181,16 @@ mod test {
     }
 
     #[test]
+    fn test_decode_zero_length() {
+        let mut decoder = Decoder::new(b"0\r\n\r\n" as &[u8]);
+
+        let mut decoded = String::new();
+        decoder.read_to_string(&mut decoded).unwrap();
+
+        assert_eq!(decoded, "");
+    }
+
+    #[test]
     fn invalid_input1() {
         let source = io::Cursor::new("2\r\nhel\r\nb\r\nlo world!!!\r\n0\r\n".to_string().into_bytes());
         let mut decoded = Decoder::new(source);
