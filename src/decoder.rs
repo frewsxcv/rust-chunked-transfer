@@ -92,12 +92,16 @@ impl<R> Read for Decoder<R> where R: Read {
 
             // if the chunk size is 0, we are at EOF
             if chunk_size == 0 {
-                if try!(self.source.by_ref().bytes().next().unwrap_or(Ok(0))) != b'\r' {
-                    return Err(IoError::new(ErrorKind::InvalidInput, DecoderError));
+                match self.source.by_ref().bytes().next() {
+                    Some(Ok(b'\r')) => (),
+                    _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
                 }
-                if try!(self.source.by_ref().bytes().next().unwrap_or(Ok(0))) != b'\n' {
-                    return Err(IoError::new(ErrorKind::InvalidInput, DecoderError));
+
+                match self.source.by_ref().bytes().next() {
+                    Some(Ok(b'\n')) => (),
+                    _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
                 }
+
                 return Ok(0);
             }
 
@@ -128,11 +132,14 @@ impl<R> Read for Decoder<R> where R: Read {
         if read == remaining_chunks_size {
             self.remaining_chunks_size = None;
 
-            if try!(self.source.by_ref().bytes().next().unwrap_or(Ok(0))) != b'\r' {
-                return Err(IoError::new(ErrorKind::InvalidInput, DecoderError));
+            match self.source.by_ref().bytes().next() {
+                Some(Ok(b'\r')) => (),
+                _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
             }
-            if try!(self.source.by_ref().bytes().next().unwrap_or(Ok(0))) != b'\n' {
-                return Err(IoError::new(ErrorKind::InvalidInput, DecoderError));
+
+            match self.source.by_ref().bytes().next() {
+                Some(Ok(b'\n')) => (),
+                _ => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
             }
         }
 
