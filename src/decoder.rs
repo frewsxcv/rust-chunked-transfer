@@ -77,7 +77,7 @@ impl<R> Decoder<R> where R: Read {
             Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
         };
 
-        let chunk_size = match usize::from_str_radix(&chunk_size, 16) {
+        let chunk_size = match usize::from_str_radix(chunk_size.trim(), 16) {
             Ok(c) => c,
             Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
         };
