@@ -161,7 +161,7 @@ impl<R> Read for Decoder<R> where R: Read {
             Some(remaining_chunks_size - read)
         };
 
-        return Ok(read);
+        Ok(read)
     }
 }
 
