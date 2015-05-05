@@ -189,6 +189,55 @@ mod test {
     use std::io;
     use std::io::Read;
 
+    /// This unit test is taken from from Hyper
+    /// https://github.com/hyperium/hyper
+    /// Copyright (c) 2014 Sean McArthur
+    #[test]
+    fn test_read_chunk_size() {
+        fn read(s: &str, expected: usize) {
+            let mut decoded = Decoder::new(s.as_bytes());
+            let actual = decoded.read_chunk_size().unwrap();
+            assert_eq!(expected, actual);
+        }
+
+        fn read_err(s: &str) {
+            let mut decoded = Decoder::new(s.as_bytes());
+            let err_kind = decoded.read_chunk_size().unwrap_err().kind();
+            assert_eq!(err_kind, io::ErrorKind::InvalidInput);
+        }
+
+        read("1\r\n", 1);
+        read("01\r\n", 1);
+        read("0\r\n", 0);
+        read("00\r\n", 0);
+        read("A\r\n", 10);
+        read("a\r\n", 10);
+        read("Ff\r\n", 255);
+        read("Ff   \r\n", 255);
+        // Missing LF or CRLF
+        read_err("F\rF");
+        read_err("F");
+        // Invalid hex digit
+        read_err("X\r\n");
+        read_err("1X\r\n");
+        read_err("-\r\n");
+        read_err("-1\r\n");
+        // Acceptable (if not fully valid) extensions do not influence the size
+        read("1;extension\r\n", 1);
+        read("a;ext name=value\r\n", 10);
+        read("1;extension;extension2\r\n", 1);
+        read("1;;;  ;\r\n", 1);
+        read("2; extension...\r\n", 2);
+        read("3   ; extension=123\r\n", 3);
+        read("3   ;\r\n", 3);
+        read("3   ;   \r\n", 3);
+        // Invalid extensions cause an error
+        read_err("1 invalid extension\r\n");
+        read_err("1 A\r\n");
+        read_err("1;no CRLF");
+    }
+
+
     #[test]
     fn test_valid_chunk_decode() {
         let source = io::Cursor::new("3\r\nhel\r\nb\r\nlo world!!!\r\n0\r\n\r\n".to_string().into_bytes());
