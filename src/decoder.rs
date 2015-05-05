@@ -135,9 +135,7 @@ impl<R> Read for Decoder<R> where R: Read {
                     return Ok(0);
                 }
 
-                // now that we now the current chunk size, calling ourselves recursively
-                self.remaining_chunks_size = Some(chunk_size);
-                return self.read(buf);
+                chunk_size
             }
         };
 
