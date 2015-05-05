@@ -56,6 +56,7 @@ impl<R> Decoder<R> where R: Read {
 
     fn read_chunk_size(&mut self) -> IoResult<usize> {
         let mut chunk_size = Vec::new();
+        let mut has_ext = false;
 
         loop {
             let byte = match self.source.by_ref().bytes().next() {
@@ -67,7 +68,25 @@ impl<R> Decoder<R> where R: Read {
                 break;
             }
 
+            if byte == b';' {
+                has_ext = true;
+                break;
+            }
+
             chunk_size.push(byte);
+        }
+
+        // Ignore extensions for now
+        if has_ext {
+            loop {
+                let byte = match self.source.by_ref().bytes().next() {
+                    Some(b) => try!(b),
+                    None => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
+                };
+                if byte == b'\r' {
+                    break;
+                }
+            }
         }
 
         try!(self.read_line_feed());
@@ -77,7 +96,7 @@ impl<R> Decoder<R> where R: Read {
             Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
         };
 
-        let chunk_size = match usize::from_str_radix(&chunk_size, 16) {
+        let chunk_size = match usize::from_str_radix(chunk_size.trim(), 16) {
             Ok(c) => c,
             Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
         };
@@ -169,6 +188,55 @@ mod test {
     use super::Decoder;
     use std::io;
     use std::io::Read;
+
+    /// This unit test is taken from from Hyper
+    /// https://github.com/hyperium/hyper
+    /// Copyright (c) 2014 Sean McArthur
+    #[test]
+    fn test_read_chunk_size() {
+        fn read(s: &str, expected: usize) {
+            let mut decoded = Decoder::new(s.as_bytes());
+            let actual = decoded.read_chunk_size().unwrap();
+            assert_eq!(expected, actual);
+        }
+
+        fn read_err(s: &str) {
+            let mut decoded = Decoder::new(s.as_bytes());
+            let err_kind = decoded.read_chunk_size().unwrap_err().kind();
+            assert_eq!(err_kind, io::ErrorKind::InvalidInput);
+        }
+
+        read("1\r\n", 1);
+        read("01\r\n", 1);
+        read("0\r\n", 0);
+        read("00\r\n", 0);
+        read("A\r\n", 10);
+        read("a\r\n", 10);
+        read("Ff\r\n", 255);
+        read("Ff   \r\n", 255);
+        // Missing LF or CRLF
+        read_err("F\rF");
+        read_err("F");
+        // Invalid hex digit
+        read_err("X\r\n");
+        read_err("1X\r\n");
+        read_err("-\r\n");
+        read_err("-1\r\n");
+        // Acceptable (if not fully valid) extensions do not influence the size
+        read("1;extension\r\n", 1);
+        read("a;ext name=value\r\n", 10);
+        read("1;extension;extension2\r\n", 1);
+        read("1;;;  ;\r\n", 1);
+        read("2; extension...\r\n", 2);
+        read("3   ; extension=123\r\n", 3);
+        read("3   ;\r\n", 3);
+        read("3   ;   \r\n", 3);
+        // Invalid extensions cause an error
+        read_err("1 invalid extension\r\n");
+        read_err("1 A\r\n");
+        read_err("1;no CRLF");
+    }
+
 
     #[test]
     fn test_valid_chunk_decode() {
