@@ -56,6 +56,7 @@ impl<R> Decoder<R> where R: Read {
 
     fn read_chunk_size(&mut self) -> IoResult<usize> {
         let mut chunk_size = Vec::new();
+        let mut has_ext = false;
 
         loop {
             let byte = match self.source.by_ref().bytes().next() {
@@ -67,7 +68,25 @@ impl<R> Decoder<R> where R: Read {
                 break;
             }
 
+            if byte == b';' {
+                has_ext = true;
+                break;
+            }
+
             chunk_size.push(byte);
+        }
+
+        // Ignore extensions for now
+        if has_ext {
+            loop {
+                let byte = match self.source.by_ref().bytes().next() {
+                    Some(b) => try!(b),
+                    None => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
+                };
+                if byte == b'\r' {
+                    break;
+                }
+            }
         }
 
         try!(self.read_line_feed());
