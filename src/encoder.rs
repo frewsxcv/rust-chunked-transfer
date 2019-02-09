@@ -61,20 +61,20 @@ impl<W> Encoder<W> where W: Write {
 }
 
 fn send<W>(output: &mut W, data: &[u8]) -> IoResult<()> where W: Write {
-    try!(write!(output, "{:x}\r\n", data.len()));
-    try!(output.write_all(data));
-    try!(write!(output, "\r\n"));
+    r#try!(write!(output, "{:x}\r\n", data.len()));
+    r#try!(output.write_all(data));
+    r#try!(write!(output, "\r\n"));
     Ok(())
 }
 
 impl<W> Write for Encoder<W> where W: Write {
     fn write(&mut self, buf: &[u8]) -> IoResult<usize> {
-        try!(self.buffer.write_all(buf));
+        r#try!(self.buffer.write_all(buf));
 
         while self.buffer.len() >= self.chunks_size {
             let rest = {
                 let (to_send, rest) = self.buffer.split_at_mut(self.chunks_size);
-                try!(send(&mut self.output, to_send));
+                r#try!(send(&mut self.output, to_send));
                 rest.to_vec()
             };
             self.buffer = rest;
@@ -88,7 +88,7 @@ impl<W> Write for Encoder<W> where W: Write {
             return Ok(());
         }
 
-        try!(send(&mut self.output, &self.buffer));
+        r#try!(send(&mut self.output, &self.buffer));
         self.buffer.clear();
         Ok(())
     }

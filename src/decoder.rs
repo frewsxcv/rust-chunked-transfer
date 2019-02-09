@@ -60,7 +60,7 @@ impl<R> Decoder<R> where R: Read {
 
         loop {
             let byte = match self.source.by_ref().bytes().next() {
-                Some(b) => try!(b),
+                Some(b) => r#try!(b),
                 None => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
             };
 
@@ -80,7 +80,7 @@ impl<R> Decoder<R> where R: Read {
         if has_ext {
             loop {
                 let byte = match self.source.by_ref().bytes().next() {
-                    Some(b) => try!(b),
+                    Some(b) => r#try!(b),
                     None => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
                 };
                 if byte == b'\r' {
@@ -89,7 +89,7 @@ impl<R> Decoder<R> where R: Read {
             }
         }
 
-        try!(self.read_line_feed());
+        r#try!(self.read_line_feed());
 
         let chunk_size = match String::from_utf8(chunk_size) {
             Ok(c) => c,
@@ -126,12 +126,12 @@ impl<R> Read for Decoder<R> where R: Read {
             None => {
                 // first possibility: we are not in a chunk, so we'll attempt to determine
                 // the chunks size
-                let chunk_size = try!(self.read_chunk_size());
+                let chunk_size = r#try!(self.read_chunk_size());
 
                 // if the chunk size is 0, we are at EOF
                 if chunk_size == 0 {
-                    try!(self.read_carriage_return());
-                    try!(self.read_line_feed());
+                    r#try!(self.read_carriage_return());
+                    r#try!(self.read_line_feed());
                     return Ok(0);
                 }
 
@@ -141,7 +141,7 @@ impl<R> Read for Decoder<R> where R: Read {
 
         // second possibility: we continue reading from a chunk
         if buf.len() < remaining_chunks_size {
-            let read = try!(self.source.read(buf));
+            let read = r#try!(self.source.read(buf));
             self.remaining_chunks_size = Some(remaining_chunks_size - read);
             return Ok(read);
         }
@@ -151,11 +151,11 @@ impl<R> Read for Decoder<R> where R: Read {
         assert!(buf.len() >= remaining_chunks_size);
 
         let buf = &mut buf[.. remaining_chunks_size];
-        let read = try!(self.source.read(buf));
+        let read = r#try!(self.source.read(buf));
 
         self.remaining_chunks_size = if read == remaining_chunks_size {
-            try!(self.read_carriage_return());
-            try!(self.read_line_feed());
+            r#try!(self.read_carriage_return());
+            r#try!(self.read_line_feed());
             None
         } else {
             Some(remaining_chunks_size - read)

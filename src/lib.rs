@@ -15,7 +15,7 @@
 
 
 mod decoder;
-pub use decoder::Decoder;
+pub use crate::decoder::Decoder;
 
 mod encoder;
-pub use encoder::Encoder;
+pub use crate::encoder::Encoder;
