@@ -95,7 +95,7 @@ where
     }
 
     fn flush(&mut self) -> IoResult<()> {
-        if self.buffer.len() == 0 {
+        if self.buffer.is_empty() {
             return Ok(());
         }
 
