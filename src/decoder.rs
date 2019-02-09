@@ -13,13 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-use std::io::Result as IoResult;
-use std::io::Read;
+use std::error::Error;
+use std::fmt;
 use std::io::Error as IoError;
 use std::io::ErrorKind;
-use std::fmt;
-use std::error::Error;
+use std::io::Read;
+use std::io::Result as IoResult;
 
 /// Reads HTTP chunks and sends back real data.
 ///
@@ -46,7 +45,10 @@ pub struct Decoder<R> {
     remaining_chunks_size: Option<usize>,
 }
 
-impl<R> Decoder<R> where R: Read {
+impl<R> Decoder<R>
+where
+    R: Read,
+{
     pub fn new(source: R) -> Decoder<R> {
         Decoder {
             source: source,
@@ -93,12 +95,12 @@ impl<R> Decoder<R> where R: Read {
 
         let chunk_size = match String::from_utf8(chunk_size) {
             Ok(c) => c,
-            Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
+            Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
         };
 
         let chunk_size = match usize::from_str_radix(chunk_size.trim(), 16) {
             Ok(c) => c,
-            Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError))
+            Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
         };
 
         Ok(chunk_size)
@@ -119,7 +121,10 @@ impl<R> Decoder<R> where R: Read {
     }
 }
 
-impl<R> Read for Decoder<R> where R: Read {
+impl<R> Read for Decoder<R>
+where
+    R: Read,
+{
     fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
         let remaining_chunks_size = match self.remaining_chunks_size {
             Some(c) => c,
@@ -150,7 +155,7 @@ impl<R> Read for Decoder<R> where R: Read {
         // we simply read until the end of the chunk and return
         assert!(buf.len() >= remaining_chunks_size);
 
-        let buf = &mut buf[.. remaining_chunks_size];
+        let buf = &mut buf[..remaining_chunks_size];
         let read = r#try!(self.source.read(buf));
 
         self.remaining_chunks_size = if read == remaining_chunks_size {
@@ -179,7 +184,6 @@ impl Error for DecoderError {
         "Error while decoding chunks"
     }
 }
-
 
 #[cfg(test)]
 mod test {
@@ -235,10 +239,13 @@ mod test {
         read_err("1;no CRLF");
     }
 
-
     #[test]
     fn test_valid_chunk_decode() {
-        let source = io::Cursor::new("3\r\nhel\r\nb\r\nlo world!!!\r\n0\r\n\r\n".to_string().into_bytes());
+        let source = io::Cursor::new(
+            "3\r\nhel\r\nb\r\nlo world!!!\r\n0\r\n\r\n"
+                .to_string()
+                .into_bytes(),
+        );
         let mut decoded = Decoder::new(source);
 
         let mut string = String::new();
@@ -267,7 +274,11 @@ mod test {
 
     #[test]
     fn invalid_input1() {
-        let source = io::Cursor::new("2\r\nhel\r\nb\r\nlo world!!!\r\n0\r\n".to_string().into_bytes());
+        let source = io::Cursor::new(
+            "2\r\nhel\r\nb\r\nlo world!!!\r\n0\r\n"
+                .to_string()
+                .into_bytes(),
+        );
         let mut decoded = Decoder::new(source);
 
         let mut string = String::new();
@@ -276,7 +287,11 @@ mod test {
 
     #[test]
     fn invalid_input2() {
-        let source = io::Cursor::new("3\rhel\r\nb\r\nlo world!!!\r\n0\r\n".to_string().into_bytes());
+        let source = io::Cursor::new(
+            "3\rhel\r\nb\r\nlo world!!!\r\n0\r\n"
+                .to_string()
+                .into_bytes(),
+        );
         let mut decoded = Decoder::new(source);
 
         let mut string = String::new();

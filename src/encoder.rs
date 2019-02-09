@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 use std::io::Result as IoResult;
 use std::io::Write;
 
@@ -35,7 +34,10 @@ use std::io::Write;
 ///
 /// assert_eq!(encoded, b"5\r\nhello\r\n5\r\n worl\r\n1\r\nd\r\n0\r\n\r\n");
 /// ```
-pub struct Encoder<W> where W: Write {
+pub struct Encoder<W>
+where
+    W: Write,
+{
     // where to send the result
     output: W,
 
@@ -46,7 +48,10 @@ pub struct Encoder<W> where W: Write {
     buffer: Vec<u8>,
 }
 
-impl<W> Encoder<W> where W: Write {
+impl<W> Encoder<W>
+where
+    W: Write,
+{
     pub fn new(output: W) -> Encoder<W> {
         Encoder::with_chunks_size(output, 8192)
     }
@@ -60,14 +65,20 @@ impl<W> Encoder<W> where W: Write {
     }
 }
 
-fn send<W>(output: &mut W, data: &[u8]) -> IoResult<()> where W: Write {
+fn send<W>(output: &mut W, data: &[u8]) -> IoResult<()>
+where
+    W: Write,
+{
     r#try!(write!(output, "{:x}\r\n", data.len()));
     r#try!(output.write_all(data));
     r#try!(write!(output, "\r\n"));
     Ok(())
 }
 
-impl<W> Write for Encoder<W> where W: Write {
+impl<W> Write for Encoder<W>
+where
+    W: Write,
+{
     fn write(&mut self, buf: &[u8]) -> IoResult<usize> {
         r#try!(self.buffer.write_all(buf));
 
@@ -94,7 +105,10 @@ impl<W> Write for Encoder<W> where W: Write {
     }
 }
 
-impl<W> Drop for Encoder<W> where W: Write {
+impl<W> Drop for Encoder<W>
+where
+    W: Write,
+{
     fn drop(&mut self) {
         self.flush().ok();
         send(&mut self.output, &[]).ok();
@@ -103,10 +117,10 @@ impl<W> Drop for Encoder<W> where W: Write {
 
 #[cfg(test)]
 mod test {
+    use super::Encoder;
     use std::io;
     use std::io::Write;
     use std::str::from_utf8;
-    use super::Encoder;
 
     #[test]
     fn test() {
