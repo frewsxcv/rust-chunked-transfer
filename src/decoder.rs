@@ -169,7 +169,7 @@ where
 struct DecoderError;
 
 impl fmt::Display for DecoderError {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         write!(fmt, "Error while decoding chunks")
     }
 }
