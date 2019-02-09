@@ -58,7 +58,7 @@ where
 
     pub fn with_chunks_size(output: W, chunks: usize) -> Encoder<W> {
         Encoder {
-            output: output,
+            output,
             chunks_size: chunks,
             buffer: Vec::with_capacity(0),
         }

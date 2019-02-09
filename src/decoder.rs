@@ -51,7 +51,7 @@ where
 {
     pub fn new(source: R) -> Decoder<R> {
         Decoder {
-            source: source,
+            source,
             remaining_chunks_size: None,
         }
     }
