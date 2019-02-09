@@ -57,7 +57,7 @@ where
     }
 
     fn read_chunk_size(&mut self) -> IoResult<usize> {
-        let mut chunk_size = Vec::new();
+        let mut chunk_size_bytes = Vec::new();
         let mut has_ext = false;
 
         loop {
@@ -75,7 +75,7 @@ where
                 break;
             }
 
-            chunk_size.push(byte);
+            chunk_size_bytes.push(byte);
         }
 
         // Ignore extensions for now
@@ -93,15 +93,10 @@ where
 
         r#try!(self.read_line_feed());
 
-        let chunk_size = match String::from_utf8(chunk_size) {
-            Ok(c) => c,
-            Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
-        };
-
-        let chunk_size = match usize::from_str_radix(chunk_size.trim(), 16) {
-            Ok(c) => c,
-            Err(_) => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
-        };
+        let chunk_size = String::from_utf8(chunk_size_bytes)
+            .ok()
+            .and_then(|c| usize::from_str_radix(c.trim(), 16).ok())
+            .ok_or(IoError::new(ErrorKind::InvalidInput, DecoderError))?;
 
         Ok(chunk_size)
     }
