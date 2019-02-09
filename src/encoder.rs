@@ -69,9 +69,9 @@ fn send<W>(output: &mut W, data: &[u8]) -> IoResult<()>
 where
     W: Write,
 {
-    r#try!(write!(output, "{:x}\r\n", data.len()));
-    r#try!(output.write_all(data));
-    r#try!(write!(output, "\r\n"));
+    write!(output, "{:x}\r\n", data.len())?;
+    output.write_all(data)?;
+    write!(output, "\r\n")?;
     Ok(())
 }
 
@@ -80,12 +80,12 @@ where
     W: Write,
 {
     fn write(&mut self, buf: &[u8]) -> IoResult<usize> {
-        r#try!(self.buffer.write_all(buf));
+        self.buffer.write_all(buf)?;
 
         while self.buffer.len() >= self.chunks_size {
             let rest = {
                 let (to_send, rest) = self.buffer.split_at_mut(self.chunks_size);
-                r#try!(send(&mut self.output, to_send));
+                send(&mut self.output, to_send)?;
                 rest.to_vec()
             };
             self.buffer = rest;
@@ -99,7 +99,7 @@ where
             return Ok(());
         }
 
-        r#try!(send(&mut self.output, &self.buffer));
+        send(&mut self.output, &self.buffer)?;
         self.buffer.clear();
         Ok(())
     }

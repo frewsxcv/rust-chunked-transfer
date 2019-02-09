@@ -62,7 +62,7 @@ where
 
         loop {
             let byte = match self.source.by_ref().bytes().next() {
-                Some(b) => r#try!(b),
+                Some(b) => b?,
                 None => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
             };
 
@@ -82,7 +82,7 @@ where
         if has_ext {
             loop {
                 let byte = match self.source.by_ref().bytes().next() {
-                    Some(b) => r#try!(b),
+                    Some(b) => b?,
                     None => return Err(IoError::new(ErrorKind::InvalidInput, DecoderError)),
                 };
                 if byte == b'\r' {
@@ -91,7 +91,7 @@ where
             }
         }
 
-        r#try!(self.read_line_feed());
+        self.read_line_feed()?;
 
         let chunk_size = String::from_utf8(chunk_size_bytes)
             .ok()
@@ -126,12 +126,12 @@ where
             None => {
                 // first possibility: we are not in a chunk, so we'll attempt to determine
                 // the chunks size
-                let chunk_size = r#try!(self.read_chunk_size());
+                let chunk_size = self.read_chunk_size()?;
 
                 // if the chunk size is 0, we are at EOF
                 if chunk_size == 0 {
-                    r#try!(self.read_carriage_return());
-                    r#try!(self.read_line_feed());
+                    self.read_carriage_return()?;
+                    self.read_line_feed()?;
                     return Ok(0);
                 }
 
@@ -141,7 +141,7 @@ where
 
         // second possibility: we continue reading from a chunk
         if buf.len() < remaining_chunks_size {
-            let read = r#try!(self.source.read(buf));
+            let read = self.source.read(buf)?;
             self.remaining_chunks_size = Some(remaining_chunks_size - read);
             return Ok(read);
         }
@@ -151,11 +151,11 @@ where
         assert!(buf.len() >= remaining_chunks_size);
 
         let buf = &mut buf[..remaining_chunks_size];
-        let read = r#try!(self.source.read(buf));
+        let read = self.source.read(buf)?;
 
         self.remaining_chunks_size = if read == remaining_chunks_size {
-            r#try!(self.read_carriage_return());
-            r#try!(self.read_line_feed());
+            self.read_carriage_return()?;
+            self.read_line_feed()?;
             None
         } else {
             Some(remaining_chunks_size - read)
