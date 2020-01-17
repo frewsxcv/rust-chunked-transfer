@@ -46,8 +46,6 @@ pub struct Decoder<R> {
 }
 
 impl<R> Decoder<R>
-where
-    R: Read,
 {
     pub fn new(source: R) -> Decoder<R> {
         Decoder {
@@ -56,6 +54,16 @@ where
         }
     }
 
+    /// Unwraps the inner read source.
+    pub fn unwrap(self) -> R {
+        self.source
+    }
+}
+
+impl<R> Decoder<R>
+where
+    R: Read,
+{
     fn read_chunk_size(&mut self) -> IoResult<usize> {
         let mut chunk_size_bytes = Vec::new();
         let mut has_ext = false;
