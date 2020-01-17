@@ -54,8 +54,8 @@ impl<R> Decoder<R>
         }
     }
 
-    /// Unwraps the inner read source.
-    pub fn unwrap(self) -> R {
+    /// Unwraps the Decoder into its inner `Read` source.
+    pub fn into_inner(self) -> R {
         self.source
     }
 }
