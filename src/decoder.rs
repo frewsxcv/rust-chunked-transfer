@@ -46,6 +46,8 @@ pub struct Decoder<R> {
 }
 
 impl<R> Decoder<R>
+where
+    R: Read,
 {
     pub fn new(source: R) -> Decoder<R> {
         Decoder {
@@ -58,12 +60,7 @@ impl<R> Decoder<R>
     pub fn into_inner(self) -> R {
         self.source
     }
-}
 
-impl<R> Decoder<R>
-where
-    R: Read,
-{
     fn read_chunk_size(&mut self) -> IoResult<usize> {
         let mut chunk_size_bytes = Vec::new();
         let mut has_ext = false;
