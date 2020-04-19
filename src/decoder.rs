@@ -56,6 +56,11 @@ where
         }
     }
 
+    /// Unwraps the Decoder into its inner `Read` source.
+    pub fn into_inner(self) -> R {
+        self.source
+    }
+
     fn read_chunk_size(&mut self) -> IoResult<usize> {
         let mut chunk_size_bytes = Vec::new();
         let mut has_ext = false;
