@@ -282,7 +282,7 @@ mod test {
         let mut decoded = Decoder::new(source);
 
         let mut string = String::new();
-        decoded.read_to_string(&mut string).is_err();
+        assert!(decoded.read_to_string(&mut string).is_err());
     }
 
     #[test]
@@ -295,6 +295,6 @@ mod test {
         let mut decoded = Decoder::new(source);
 
         let mut string = String::new();
-        decoded.read_to_string(&mut string).is_err();
+        assert!(decoded.read_to_string(&mut string).is_err());
     }
 }
