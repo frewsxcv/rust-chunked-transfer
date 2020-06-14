@@ -48,8 +48,8 @@ where
     buffer: Vec<u8>,
 
     // Flushes the internal buffer after each write. This might be useful
-    // if data should be sent immediately to downstream consumers 
-    flush_after_write: bool
+    // if data should be sent immediately to downstream consumers
+    flush_after_write: bool,
 }
 
 impl<W> Encoder<W>
@@ -65,7 +65,7 @@ where
             output,
             chunks_size: chunks,
             buffer: Vec::with_capacity(0),
-            flush_after_write: false
+            flush_after_write: false,
         }
     }
 
@@ -74,9 +74,8 @@ where
             output,
             chunks_size: 8192,
             buffer: Vec::with_capacity(0),
-            flush_after_write: true
+            flush_after_write: true,
         }
-
     }
 }
 
@@ -155,7 +154,7 @@ mod test {
 
         assert_eq!(output, "5\r\nhello\r\n5\r\n worl\r\n1\r\nd\r\n0\r\n\r\n");
     }
-     #[test]
+    #[test]
     fn flush_after_write() {
         let mut source = io::Cursor::new("hello world".to_string().into_bytes());
         let mut dest: Vec<u8> = vec![];
