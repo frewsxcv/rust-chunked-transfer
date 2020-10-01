@@ -66,11 +66,7 @@ where
     }
 
     pub fn with_chunks_size(output: W, chunks: usize) -> Encoder<W> {
-        let chunks_size = if chunks > MAX_CHUNK_SIZE {
-            MAX_CHUNK_SIZE
-        } else {
-            chunks
-        };
+        let chunks_size = chunks.min(MAX_CHUNK_SIZE);
         let mut encoder = Encoder {
             output,
             chunks_size,
