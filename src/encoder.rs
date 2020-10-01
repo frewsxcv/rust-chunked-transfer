@@ -138,7 +138,6 @@ where
     W: Write,
 {
     fn write(&mut self, data: &[u8]) -> IoResult<usize> {
-        println!("writing to buffer: {:?}", data);
         let buffer_size = self.buffer.len() - HEADER_SIZE;
         let remaining_buffer_space = self.chunks_size - buffer_size;
         let bytes_to_buffer = std::cmp::min(remaining_buffer_space, data.len());
