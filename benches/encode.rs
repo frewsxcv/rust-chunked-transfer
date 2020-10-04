@@ -4,6 +4,8 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use chunked_transfer;
 use std::io::Write;
 
+extern crate test;
+
 fn encode_benchmark(c: &mut Criterion) {
     c.bench_function("encode", |b| {
         let writer = vec![];
@@ -11,7 +13,7 @@ fn encode_benchmark(c: &mut Criterion) {
         let mut to_write = vec![b'a'; 1000];
 
         b.iter(|| {
-            encoder.write_all(&mut to_write);
+            test::black_box(encoder.write_all(&mut to_write));
         });
     });
 }
