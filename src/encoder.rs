@@ -96,14 +96,14 @@ where
         self.buffer.extend_from_slice(&placeholder);
     }
 
-    fn buffer_empty(&self) -> bool {
+    fn is_buffer_empty(&self) -> bool {
         self.buffer.len() == HEADER_SIZE
     }
 
     fn send(&mut self) -> IoResult<()> {
         // Never send an empty buffer, because that would be interpreted
         // as the end of the stream, which we indicate explicitly on drop.
-        if self.buffer_empty() {
+        if self.is_buffer_empty() {
             return Ok(());
         }
         // Prepend the length and \r\n to the buffer.
@@ -180,7 +180,7 @@ mod test {
         {
             let mut encoder = Encoder::with_chunks_size(dest.by_ref(), 5);
             io::copy(&mut source, &mut encoder).unwrap();
-            assert!(!encoder.buffer_empty());
+            assert!(!encoder.is_buffer_empty());
         }
 
         let output = from_utf8(&dest).unwrap();
@@ -196,7 +196,7 @@ mod test {
             let mut encoder = Encoder::with_flush_after_write(dest.by_ref());
             io::copy(&mut source, &mut encoder).unwrap();
             // The internal buffer has been flushed.
-            assert!(encoder.buffer_empty());
+            assert!(encoder.is_buffer_empty());
         }
 
         let output = from_utf8(&dest).unwrap();
