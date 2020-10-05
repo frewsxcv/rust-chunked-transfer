@@ -91,9 +91,9 @@ where
     fn reset_buffer(&mut self) {
         // Reset buffer
         self.buffer.clear();
-        // Arbitrary bytes to take up space. Should never be seen in output.
-        let placeholder: [u8; PLACEHOLDER_HEADER_SIZE] = *b"DACE\r\n";
-        self.buffer.extend_from_slice(&placeholder);
+        // Reserve space for the chunk size. This space will be populated once
+        // we know the size of the chunk.
+        self.buffer.resize(PLACEHOLDER_HEADER_SIZE, 0);
     }
 
     fn is_buffer_empty(&self) -> bool {
