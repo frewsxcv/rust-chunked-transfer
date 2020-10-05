@@ -109,11 +109,11 @@ where
         // Prepend the length and \r\n to the buffer.
         let prelude = format!("{:x}\r\n", self.buffer.len() - HEADER_SIZE);
         let prelude = prelude.as_bytes();
-        if prelude.len() > HEADER_SIZE {
-            // This should never happen because MAX_CHUNK_SIZE of u32::MAX
-            // can always be encoded in 4 hex bytes.
-            panic!("invariant failed: prelude longer than HEADER_SIZE");
-        }
+
+        // This should never happen because MAX_CHUNK_SIZE of u32::MAX
+        // can always be encoded in 4 hex bytes.
+        assert!(HEADER_SIZE <= prelude.len(), "invariant failed: prelude longer than HEADER_SIZE");
+
         // Copy the prelude into the buffer. For small chunks, this won't necessarily
         // take up all the space that was reserved for the prelude.
         let offset = HEADER_SIZE - prelude.len();
