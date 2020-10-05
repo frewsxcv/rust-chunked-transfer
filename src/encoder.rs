@@ -55,7 +55,7 @@ where
 }
 
 const MAX_CHUNK_SIZE: usize = std::u32::MAX as usize;
-const HEADER_SIZE: usize = 6;
+const PLACEHOLDER_HEADER_SIZE: usize = 6;
 
 impl<W> Encoder<W>
 where
@@ -92,12 +92,16 @@ where
         // Reset buffer
         self.buffer.clear();
         // Arbitrary bytes to take up space. Should never be seen in output.
-        let placeholder: [u8; HEADER_SIZE] = *b"DACE\r\n";
+        let placeholder: [u8; PLACEHOLDER_HEADER_SIZE] = *b"DACE\r\n";
         self.buffer.extend_from_slice(&placeholder);
     }
 
     fn is_buffer_empty(&self) -> bool {
-        self.buffer.len() == HEADER_SIZE
+        self.buffer.len() == PLACEHOLDER_HEADER_SIZE
+    }
+
+    fn buffer_len(&self) -> usize {
+        self.buffer.len() - PLACEHOLDER_HEADER_SIZE
     }
 
     fn send(&mut self) -> IoResult<()> {
@@ -107,17 +111,17 @@ where
             return Ok(());
         }
         // Prepend the length and \r\n to the buffer.
-        let prelude = format!("{:x}\r\n", self.buffer.len() - HEADER_SIZE);
+        let prelude = format!("{:x}\r\n", self.buffer_len());
         let prelude = prelude.as_bytes();
 
         // This should never happen because MAX_CHUNK_SIZE of u32::MAX
         // can always be encoded in 4 hex bytes.
-        assert!(HEADER_SIZE <= prelude.len(), "invariant failed: prelude longer than HEADER_SIZE");
+        assert!(PLACEHOLDER_HEADER_SIZE <= prelude.len(), "invariant failed: prelude longer than PLACEHOLDER_HEADER_SIZE");
 
         // Copy the prelude into the buffer. For small chunks, this won't necessarily
         // take up all the space that was reserved for the prelude.
-        let offset = HEADER_SIZE - prelude.len();
-        self.buffer[offset..HEADER_SIZE].clone_from_slice(&prelude);
+        let offset = PLACEHOLDER_HEADER_SIZE - prelude.len();
+        self.buffer[offset..PLACEHOLDER_HEADER_SIZE].clone_from_slice(&prelude);
 
         // Append the chunk-finishing \r\n to the buffer.
         self.buffer.write_all(b"\r\n")?;
@@ -134,8 +138,7 @@ where
     W: Write,
 {
     fn write(&mut self, data: &[u8]) -> IoResult<usize> {
-        let buffer_size = self.buffer.len() - HEADER_SIZE;
-        let remaining_buffer_space = self.chunks_size - buffer_size;
+        let remaining_buffer_space = self.chunks_size - self.buffer_len();
         let bytes_to_buffer = std::cmp::min(remaining_buffer_space, data.len());
         self.buffer.extend_from_slice(&data[0..bytes_to_buffer]);
         let more_to_write: bool = bytes_to_buffer < data.len();
