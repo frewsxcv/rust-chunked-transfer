@@ -116,7 +116,7 @@ where
 
         // This should never happen because MAX_CHUNK_SIZE of u32::MAX
         // can always be encoded in 4 hex bytes.
-        assert!(PLACEHOLDER_HEADER_SIZE <= prelude.len(), "invariant failed: prelude longer than PLACEHOLDER_HEADER_SIZE");
+        assert!(prelude.len() <= PLACEHOLDER_HEADER_SIZE, "invariant failed: prelude longer than PLACEHOLDER_HEADER_SIZE");
 
         // Copy the prelude into the buffer. For small chunks, this won't necessarily
         // take up all the space that was reserved for the prelude.
