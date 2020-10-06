@@ -45,12 +45,19 @@ where
     chunks_size: usize,
 
     // data waiting to be sent is stored here
+    // This will always be at least 6 bytes long. The first 6 bytes
+    // are reserved for the chunk size and \r\n.
     buffer: Vec<u8>,
 
     // Flushes the internal buffer after each write. This might be useful
     // if data should be sent immediately to downstream consumers
     flush_after_write: bool,
 }
+
+const MAX_CHUNK_SIZE: usize = std::u32::MAX as usize;
+// This accounts for four hex digits (enough to hold a u32) plus two bytes
+// for the \r\n
+const MAX_HEADER_SIZE: usize = 6;
 
 impl<W> Encoder<W>
 where
@@ -61,64 +68,96 @@ where
     }
 
     pub fn with_chunks_size(output: W, chunks: usize) -> Encoder<W> {
-        Encoder {
+        let chunks_size = chunks.min(MAX_CHUNK_SIZE);
+        let mut encoder = Encoder {
             output,
-            chunks_size: chunks,
-            buffer: Vec::with_capacity(0),
+            chunks_size,
+            buffer: vec![0; MAX_HEADER_SIZE],
             flush_after_write: false,
-        }
+        };
+        encoder.reset_buffer();
+        encoder
     }
 
     pub fn with_flush_after_write(output: W) -> Encoder<W> {
-        Encoder {
+        let mut encoder = Encoder {
             output,
             chunks_size: 8192,
-            buffer: Vec::with_capacity(0),
+            buffer: vec![0; MAX_HEADER_SIZE],
             flush_after_write: true,
-        }
+        };
+        encoder.reset_buffer();
+        encoder
     }
-}
 
-fn send<W>(output: &mut W, data: &[u8]) -> IoResult<()>
-where
-    W: Write,
-{
-    write!(output, "{:x}\r\n", data.len())?;
-    output.write_all(data)?;
-    write!(output, "\r\n")?;
-    Ok(())
+    fn reset_buffer(&mut self) {
+        // Reset buffer, still leaving space for the chunk size. That space
+        // will be populated once we know the size of the chunk.
+        self.buffer.truncate(MAX_HEADER_SIZE);
+    }
+
+    fn is_buffer_empty(&self) -> bool {
+        self.buffer.len() == MAX_HEADER_SIZE
+    }
+
+    fn buffer_len(&self) -> usize {
+        self.buffer.len() - MAX_HEADER_SIZE
+    }
+
+    fn send(&mut self) -> IoResult<()> {
+        // Never send an empty buffer, because that would be interpreted
+        // as the end of the stream, which we indicate explicitly on drop.
+        if self.is_buffer_empty() {
+            return Ok(());
+        }
+        // Prepend the length and \r\n to the buffer.
+        let prelude = format!("{:x}\r\n", self.buffer_len());
+        let prelude = prelude.as_bytes();
+
+        // This should never happen because MAX_CHUNK_SIZE of u32::MAX
+        // can always be encoded in 4 hex bytes.
+        assert!(
+            prelude.len() <= MAX_HEADER_SIZE,
+            "invariant failed: prelude longer than MAX_HEADER_SIZE"
+        );
+
+        // Copy the prelude into the buffer. For small chunks, this won't necessarily
+        // take up all the space that was reserved for the prelude.
+        let offset = MAX_HEADER_SIZE - prelude.len();
+        self.buffer[offset..MAX_HEADER_SIZE].clone_from_slice(&prelude);
+
+        // Append the chunk-finishing \r\n to the buffer.
+        self.buffer.write_all(b"\r\n")?;
+
+        self.output.write_all(&self.buffer[offset..])?;
+        self.reset_buffer();
+
+        Ok(())
+    }
 }
 
 impl<W> Write for Encoder<W>
 where
     W: Write,
 {
-    fn write(&mut self, buf: &[u8]) -> IoResult<usize> {
-        self.buffer.write_all(buf)?;
-
-        while self.buffer.len() >= self.chunks_size {
-            let rest = {
-                let (to_send, rest) = self.buffer.split_at_mut(self.chunks_size);
-                send(&mut self.output, to_send)?;
-                rest.to_vec()
-            };
-            self.buffer = rest;
-        }
-        if self.flush_after_write {
-            self.flush()?;
+    fn write(&mut self, data: &[u8]) -> IoResult<usize> {
+        let remaining_buffer_space = self.chunks_size - self.buffer_len();
+        let bytes_to_buffer = std::cmp::min(remaining_buffer_space, data.len());
+        self.buffer.extend_from_slice(&data[0..bytes_to_buffer]);
+        let more_to_write: bool = bytes_to_buffer < data.len();
+        if self.flush_after_write || more_to_write {
+            self.send()?;
         }
 
-        Ok(buf.len())
+        // If we didn't write the whole thing, keep working on it.
+        if more_to_write {
+            self.write_all(&data[bytes_to_buffer..])?;
+        }
+        Ok(data.len())
     }
 
     fn flush(&mut self) -> IoResult<()> {
-        if self.buffer.is_empty() {
-            return Ok(());
-        }
-
-        send(&mut self.output, &self.buffer)?;
-        self.buffer.clear();
-        Ok(())
+        self.send()
     }
 }
 
@@ -128,7 +167,7 @@ where
 {
     fn drop(&mut self) {
         self.flush().ok();
-        send(&mut self.output, &[]).ok();
+        write!(self.output, "0\r\n\r\n").ok();
     }
 }
 
@@ -147,7 +186,7 @@ mod test {
         {
             let mut encoder = Encoder::with_chunks_size(dest.by_ref(), 5);
             io::copy(&mut source, &mut encoder).unwrap();
-            assert!(!encoder.buffer.is_empty());
+            assert!(!encoder.is_buffer_empty());
         }
 
         let output = from_utf8(&dest).unwrap();
@@ -163,7 +202,7 @@ mod test {
             let mut encoder = Encoder::with_flush_after_write(dest.by_ref());
             io::copy(&mut source, &mut encoder).unwrap();
             // The internal buffer has been flushed.
-            assert!(encoder.buffer.is_empty());
+            assert!(encoder.is_buffer_empty());
         }
 
         let output = from_utf8(&dest).unwrap();
