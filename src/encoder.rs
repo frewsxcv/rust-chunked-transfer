@@ -55,7 +55,9 @@ where
 }
 
 const MAX_CHUNK_SIZE: usize = std::u32::MAX as usize;
-const PLACEHOLDER_HEADER_SIZE: usize = 6;
+// This accounts for four hex digits (enough to hold a u32) plus two bytes
+// for the \r\n
+const MAX_HEADER_SIZE: usize = 6;
 
 impl<W> Encoder<W>
 where
@@ -70,7 +72,7 @@ where
         let mut encoder = Encoder {
             output,
             chunks_size,
-            buffer: Vec::with_capacity(0),
+            buffer: vec![0; MAX_HEADER_SIZE],
             flush_after_write: false,
         };
         encoder.reset_buffer();
@@ -81,7 +83,7 @@ where
         let mut encoder = Encoder {
             output,
             chunks_size: 8192,
-            buffer: Vec::with_capacity(0),
+            buffer: vec![0; MAX_HEADER_SIZE],
             flush_after_write: true,
         };
         encoder.reset_buffer();
@@ -89,19 +91,17 @@ where
     }
 
     fn reset_buffer(&mut self) {
-        // Reset buffer
-        self.buffer.clear();
-        // Reserve space for the chunk size. This space will be populated once
-        // we know the size of the chunk.
-        self.buffer.resize(PLACEHOLDER_HEADER_SIZE, 0);
+        // Reset buffer, still leaving space for the chunk size. That space
+        // will be populated once we know the size of the chunk.
+        self.buffer.truncate(MAX_HEADER_SIZE);
     }
 
     fn is_buffer_empty(&self) -> bool {
-        self.buffer.len() == PLACEHOLDER_HEADER_SIZE
+        self.buffer.len() == MAX_HEADER_SIZE
     }
 
     fn buffer_len(&self) -> usize {
-        self.buffer.len() - PLACEHOLDER_HEADER_SIZE
+        self.buffer.len() - MAX_HEADER_SIZE
     }
 
     fn send(&mut self) -> IoResult<()> {
@@ -116,12 +116,15 @@ where
 
         // This should never happen because MAX_CHUNK_SIZE of u32::MAX
         // can always be encoded in 4 hex bytes.
-        assert!(prelude.len() <= PLACEHOLDER_HEADER_SIZE, "invariant failed: prelude longer than PLACEHOLDER_HEADER_SIZE");
+        assert!(
+            prelude.len() <= MAX_HEADER_SIZE,
+            "invariant failed: prelude longer than MAX_HEADER_SIZE"
+        );
 
         // Copy the prelude into the buffer. For small chunks, this won't necessarily
         // take up all the space that was reserved for the prelude.
-        let offset = PLACEHOLDER_HEADER_SIZE - prelude.len();
-        self.buffer[offset..PLACEHOLDER_HEADER_SIZE].clone_from_slice(&prelude);
+        let offset = MAX_HEADER_SIZE - prelude.len();
+        self.buffer[offset..MAX_HEADER_SIZE].clone_from_slice(&prelude);
 
         // Append the chunk-finishing \r\n to the buffer.
         self.buffer.write_all(b"\r\n")?;
