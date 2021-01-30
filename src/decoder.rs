@@ -56,6 +56,11 @@ where
         }
     }
 
+	/// Returns the remaining bytes left in the chunk being read.
+	pub fn remaining_chunks_size(&self) -> Option<usize> {
+		self.remaining_chunks_size
+	}
+
     /// Unwraps the Decoder into its inner `Read` source.
     pub fn into_inner(self) -> R {
         self.source
