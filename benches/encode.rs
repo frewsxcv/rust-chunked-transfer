@@ -1,7 +1,7 @@
 #![feature(test)]
 
-use criterion::{criterion_group, criterion_main, Criterion};
 use chunked_transfer;
+use criterion::{criterion_group, criterion_main, Criterion};
 use std::io::Write;
 
 extern crate test;
