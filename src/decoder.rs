@@ -106,7 +106,7 @@ where
         let chunk_size = String::from_utf8(chunk_size_bytes)
             .ok()
             .and_then(|c| usize::from_str_radix(c.trim(), 16).ok())
-            .ok_or(IoError::new(ErrorKind::InvalidInput, DecoderError))?;
+            .ok_or_else(|| IoError::new(ErrorKind::InvalidInput, DecoderError))?;
 
         Ok(chunk_size)
     }
