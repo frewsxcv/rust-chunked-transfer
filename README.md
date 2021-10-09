@@ -1,14 +1,14 @@
 # rust-chunked-transfer
 
 [![Build Status](https://travis-ci.org/frewsxcv/rust-chunked-transfer.svg?branch=master)](https://travis-ci.org/frewsxcv/rust-chunked-transfer)
-[![chunked\_transfer on Crates.io](https://meritbadge.herokuapp.com/chunked_transfer)](https://crates.io/crates/chunked\_transfer)
+[![chunked\_transfer on Crates.io](https://img.shields.io/crates/v/chunked_transfer.svg)](https://crates.io/crates/chunked\_transfer)
 
 [Documentation](https://docs.rs/chunked_transfer/)
 
 Encoder and decoder for HTTP chunked transfer coding. For more information about chunked transfer encoding:
 
 * [RFC 7230 § 4.1](https://tools.ietf.org/html/rfc7230#section-4.1)
-* [RFC 2616 § 3.6.1](http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1) (deprecated)
+* [RFC 2616 § 3.6.1](https://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1) (deprecated)
 * [Wikipedia: Chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
 
 ## Example
