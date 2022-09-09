@@ -15,6 +15,8 @@
 
 use std::io::Result as IoResult;
 use std::io::Write;
+#[cfg(feature = "sgx_tstd")]
+use std::vec::Vec;
 
 /// Splits the incoming data into HTTP chunks.
 ///

@@ -7,6 +7,13 @@ repository = "https://github.com/frewsxcv/rust-chunked-transfer"
 description = "Encoder and decoder for HTTP chunked transfer coding (RFC 7230 § 4.1)"
 edition = "2018"
 
+[dependencies]
+sgx_tstd = { git = "https://github.com/apache/incubator-teaclave-sgx-sdk.git", tag = "v1.1.4", features = [
+    "backtrace",
+    "net",
+    "thread",
+], optional = true }
+
 [dev-dependencies]
 criterion = "0.3"
 

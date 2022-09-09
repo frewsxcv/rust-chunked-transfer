@@ -19,6 +19,10 @@ use std::io::Error as IoError;
 use std::io::ErrorKind;
 use std::io::Read;
 use std::io::Result as IoResult;
+#[cfg(feature = "sgx_tstd")]
+use std::string::String;
+#[cfg(feature = "sgx_tstd")]
+use std::vec::Vec;
 
 /// Reads HTTP chunks and sends back real data.
 ///
