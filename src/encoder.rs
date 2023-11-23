@@ -52,6 +52,16 @@ where
         Encoder::with_chunks_size(output, 8192)
     }
 
+    /// Gets a reference to the underlying value in this encoder.
+    pub fn get_ref(&self) -> &W {
+        &self.output
+    }
+
+    /// Gets a mutable reference to the underlying value in this encoder.
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.output
+    }
+
     pub fn with_chunks_size(output: W, chunks: usize) -> Encoder<W> {
         let chunks_size = chunks.min(MAX_CHUNK_SIZE);
         let mut encoder = Encoder {

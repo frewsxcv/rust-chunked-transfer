@@ -51,6 +51,16 @@ where
         self.source
     }
 
+    /// Gets a reference to the underlying value in this decoder.
+    pub fn get_ref(&self) -> &R {
+        &self.source
+    }
+
+    /// Gets a mutable reference to the underlying value in this decoder.
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.source
+    }
+
     fn read_chunk_size(&mut self) -> IoResult<usize> {
         let mut chunk_size_bytes = Vec::new();
         let mut has_ext = false;
