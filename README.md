@@ -1,5 +1,7 @@
 # rust-chunked-transfer
 
+**⚠️ This repository has been moved to <https://tangled.org/rwell.org/rust-chunked-transfer> ⚠️**
+
 [Documentation](https://docs.rs/chunked_transfer/)
 
 Encoder and decoder for HTTP chunked transfer coding. For more information about chunked transfer encoding:
